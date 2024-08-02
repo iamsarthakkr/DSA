@@ -7,21 +7,22 @@ using namespace std;
 #define debug(...) 69
 #endif
 
-struct Item {
+struct Info {
    int min;
    int count;
 
-   Item() { // empty element neutral
+   Info() { // empty element neutral
       min = INT_MAX;
       count = 0;
    }
-   Item(int v) {  // single
+   
+   Info(int v) {  // single
       min = v;
       count = 1;
    }
 
-   static Item merge(const Item& a, const Item& b) {
-      Item res;
+   static Info merge(const Info& a, const Info& b) {
+      Info res;
       res.min = std::min(a.min, b.min);
       if(a.min == res.min) res.count += a.count;
       if(b.min == res.min) res.count += b.count;
@@ -30,22 +31,20 @@ struct Item {
 };
 
 struct Segtree {
-   
    int size;
-   vector<Item> tree;
+   vector<Info> tree;
 
    Segtree(int n) {
       size = 1;
       while(size < n) size *= 2;
-      tree.assign(2 * size, Item());
+      tree.assign(2 * size, Info());
    }
 
-   template<typename T>
-   void build(int node, int lx, int rx, vector<T>& arr) {
+   void build(int node, int lx, int rx, vector<Info>& arr) {
       if(rx - lx == 1) {
          // leaf
          if(lx < (int)arr.size()) {
-            tree[node] = { arr[lx] }; // single
+            tree[node] = arr[lx];
          }
          return;
       }
@@ -53,11 +52,10 @@ struct Segtree {
       build(2 * node + 1, lx, m, arr); 
       build(2 * node + 2, m, rx, arr);
       // recalc
-      tree[node] = Item::merge(tree[2 * node + 1], tree[2 * node + 2]);
+      tree[node] = Info::merge(tree[2 * node + 1], tree[2 * node + 2]);
    }
 
-   template<typename T>
-   void build(vector<T>& arr) {
+   void build(vector<Info>& arr) {
       build(0, 0, size, arr);
    }
 
@@ -76,7 +74,7 @@ struct Segtree {
          set(2 * node + 2, m, rx, i, v);
       }
       // recalc
-      tree[node] = Item::merge(tree[2 * node + 1], tree[2 * node + 2]);
+      tree[node] = Info::merge(tree[2 * node + 1], tree[2 * node + 2]);
    }
    
    template<typename T>
@@ -85,10 +83,10 @@ struct Segtree {
    }
 
    // calc operation
-   Item calc(int node, int lx, int rx, int l, int r) {
+   Info calc(int node, int lx, int rx, int l, int r) {
       // disjoint
       if(rx <= l || r <= lx) {
-         return Item();
+         return Info();
       }
       // covered
       if(l <= lx && rx <= r) {
@@ -97,11 +95,11 @@ struct Segtree {
       int m = (lx + rx) >> 1;
       auto s1 = calc(2 * node + 1, lx, m, l, r);
       auto s2 = calc(2 * node + 2, m, rx, l, r);
-      return Item::merge(s1, s2);
+      return Info::merge(s1, s2);
    }
    
    // function from l...r-1
-   Item calc(int l, int r) {
+   Info calc(int l, int r) {
       return calc(0, 0, size, l, r);
    }
 };
@@ -112,8 +110,11 @@ void Main() {
    vector<int> a(n);
    for(auto& x: a) cin >> x;
 
+   vector<Info> info(n);
+   for(int i = 0; i < n; i++) info[i] = Info(a[i]);
+
    Segtree st(n);
-   st.build(a);
+   st.build(info);
 
    while(m--) {
       int t;

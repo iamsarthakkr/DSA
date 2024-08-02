@@ -7,20 +7,20 @@ using namespace std;
 #define debug(...) 69
 #endif
 
-struct Item {
+struct Info {
    int min;
    int count;
 
-   Item() { // empty element neutral
+   Info() { // empty element neutral
       min = (int)2e9;
       count = 0;
    }
-   Item(int v) {  // single
+   Info(int v) {  // single
       min = v;
       count = 1;
    }
-   static Item merge(const Item& a, const Item& b) {
-      Item res;
+   static Info merge(const Info& a, const Info& b) {
+      Info res;
       res.min = std::min(a.min, b.min);
       res.count = (a.min == res.min ? a.count : 0) + (b.min == res.min ? b.count : 0);
       return res;
@@ -28,28 +28,25 @@ struct Item {
 };
 
 struct Segtree {
-   Item node;
+   Info node;
    int leftmost, rightmost;
    Segtree *left, *right;
 
-   Segtree(int n) {
-      this->build(0, n);
+   Segtree() {}
+
+   Segtree(vector<Info>& info) {
+      int size = (int)info.size();
+      this->build(0, size, info);
    }
 
-   template<typename T>
-   Segtree(vector<T>& arr) {
-      int n = (int)arr.size();
-      this->build(0, n, arr);
-   }
-
-   Item calc(int l, int r) {
+   Info calc(int l, int r) {
       // disjoint
-      if(r <= leftmost || rightmost <= l) return Item();
+      if(r <= leftmost || rightmost <= l) return Info();
       // covered
       if(l <= leftmost && rightmost <= r) return node;
 
       auto s1 = left->calc(l, r), s2 = right->calc(l, r);
-      return Item::merge(s1, s2);
+      return Info::merge(s1, s2);
    }
 
    void set(int i, int v) {
@@ -65,35 +62,13 @@ struct Segtree {
    }
 
 private:
-
-   Segtree() {
-   }
-   Segtree(int l, int r) {
-      this->build(l, r);
-   }
-
-private:
-   void build(int l, int r) {
-      this->leftmost = l;
-      this->rightmost = r;
-      if(r - l == 1) return;
-      
-      int m = (r - l) >> 1;
-      left = new Segtree();
-      right = new Segtree();
-      left->build(l, m);
-      right->build(m, r);
-      recalc();
-   }
-
-   template<typename T>
-   void build(int l, int r, vector<T>& arr) {
+   void build(int l, int r, vector<Info>& arr) {
       this->leftmost = l;
       this->rightmost = r;
       
       if(r - l == 1) {
          if(l < (int)arr.size()) {
-            node = { arr[l] };
+            node = arr[l];
          }
          return;
       }
@@ -107,7 +82,7 @@ private:
    }
    void recalc() {
       if(rightmost - leftmost == 1) return;
-      node =  Item::merge(left->node, right->node);
+      node =  Info::merge(left->node, right->node);
    }
 };
 
@@ -117,7 +92,9 @@ void Main() {
    vector<int> a(n);
    for(auto& x: a) cin >> x;
 
-   Segtree st(a);
+   vector<Info> info(n);
+   for(int i = 0; i < n; i++) info[i] = Info(a[i]);
+   Segtree st(info);
 
    while(m--) {
       int t;
