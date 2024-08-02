@@ -8,24 +8,19 @@ using namespace std;
 #endif
 
 struct Info {
-   int min;
-   int count;
+   int val;
 
    Info() { // empty element neutral
-      min = INT_MAX;
-      count = 0;
+      val = 0;
    }
    
    Info(int v) {  // single
-      min = v;
-      count = 1;
+      val = v;
    }
 
    static Info merge(const Info& a, const Info& b) {
       Info res;
-      res.min = std::min(a.min, b.min);
-      if(a.min == res.min) res.count += a.count;
-      if(b.min == res.min) res.count += b.count;
+      res.val = a.val + b.val;
       return res;
    }
 };
@@ -111,30 +106,7 @@ private:
 };
 
 void Main() {
-   int n, m;
-   cin >> n >> m;
-   vector<int> a(n);
-   for(auto& x: a) cin >> x;
-
-   vector<Info> info(n);
-   for(int i = 0; i < n; i++) info[i] = Info(a[i]);
-
-   Segtree st(info);
-
-   while(m--) {
-      int t;
-      cin >> t;
-      if(t == 1) {
-         int i, v;
-         cin >> i >> v;
-         st.set(i, v);
-      } else {
-         int l, r;
-         cin >> l >> r;
-         auto res = st.calc(l, r);
-         cout << res.min << " " << res.count << '\n';
-      }
-   }
+   
 }
 
 int main() {
