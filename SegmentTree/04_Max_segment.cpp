@@ -29,33 +29,18 @@ struct Info {
    }
 };
 
+
 struct Segtree {
    int size;
    vector<Info> tree;
 
    Segtree(int n) {
-      size = 1;
-      while(size < n) size *= 2;
-      tree.assign(2 * size, Info());
+      init(n);
    }
 
-   void build(int node, int lx, int rx, vector<Info>& arr) {
-      if(rx - lx == 1) {
-         // leaf
-         if(lx < (int)arr.size()) {
-            tree[node] = arr[lx];
-         }
-         return;
-      }
-      int m = (lx + rx) >> 1;
-      build(2 * node + 1, lx, m, arr); 
-      build(2 * node + 2, m, rx, arr);
-      // recalc
-      tree[node] = Info::merge(tree[2 * node + 1], tree[2 * node + 2]);
-   }
-
-   void build(vector<Info>& arr) {
-      build(0, 0, size, arr);
+   Segtree(vector<Info>& info) {
+      init((int)info.size());
+      this->build(0, 0, size, info);
    }
 
    // set operation
@@ -101,6 +86,28 @@ struct Segtree {
    Info calc(int l, int r) {
       return calc(0, 0, size, l, r);
    }
+
+private: 
+   void init(int n) {
+      size = 1;
+      while(size < n) size *= 2;
+      tree.assign(2 * size, Info());
+   }
+
+   void build(int node, int lx, int rx, vector<Info>& arr) {
+      if(rx - lx == 1) {
+         // leaf
+         if(lx < (int)arr.size()) {
+            tree[node] = arr[lx];
+         }
+         return;
+      }
+      int m = (lx + rx) >> 1;
+      build(2 * node + 1, lx, m, arr); 
+      build(2 * node + 2, m, rx, arr);
+      // recalc
+      tree[node] = Info::merge(tree[2 * node + 1], tree[2 * node + 2]);
+   }
 };
 
 void Main() {
@@ -112,8 +119,7 @@ void Main() {
    vector<Info> info(n);
    for(int i = 0; i < n; i++) info[i] = Info(a[i]);
 
-   Segtree st(n);
-   st.build(info);
+   Segtree st(info);
 
    cout << st.calc(0, n).seg << '\n';
 
