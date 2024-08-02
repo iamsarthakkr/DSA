@@ -1,33 +1,5 @@
 #include <bits/stdc++.h>
-/*
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-*/
-
 using namespace std;
-// using namespace __gnu_pbds;
-
-// typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> ordered_set;
-
-typedef long long ll;
-typedef unsigned long long ull;
-typedef long double lld;
-typedef pair<int, int> pii;
-typedef pair<long long, long long> pll;
-typedef vector<int> vi;
-typedef vector<ll> vll;
-typedef vector<vi> vvi;
-typedef vector<vll> vvll;
-typedef vector<pii> vpii;
-typedef vector<pll> vpll;
-
-#define forn(i, n) for(int i = 0; i < n; i++)
-#define ford(i, n) for(int i = n - 1; i >= 0; i--)
-#define for1(i, n) for(int i = 1; i <= n; i++)
-#define forr(i, l, r) for(int i = l; i <= r; i++)
-#define forrd(i, l, r) for(int i = r; i >= l; i--)
-#define all(a) (a).begin(), (a).end()
-#define len(a) (int)(a).size()
 
 #ifdef SARTHAK_LOCAL
 #include "/Users/sarthakkumar/cpp/templates/CompCoding/debug.cpp"
@@ -35,23 +7,104 @@ typedef vector<pll> vpll;
 #define debug(...) 69
 #endif
 
-template<typename T> bool cmin(T& a, T b) { return b < a ? a = b, 1 : 0; }
-template<typename T> bool cmax(T& a, T b) { return b > a ? a = b, 1 : 0; }
+struct Segtree {
+   int size;
+   vector<long long> tree;
 
-template<typename T>
-T gcd(T a, T b) {
-   while (b) { a %= b; swap(a, b); }
-   return a;
-}
+   Segtree(int n) {
+      size = 1;
+      while(size < n) size *= 2;
+      tree.assign(2 * size, 0);
+   }
 
-mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
-// mt19937_64 rng(696969);
+   template<typename T>
+   void build(int node, int lx, int rx, vector<T>& arr) {
+      if(rx - lx == 1) {
+         // leaf
+         if(lx < (int)arr.size()) {
+            tree[node] = arr[lx];
+         }
+         return;
+      }
+      int m = (lx + rx) >> 1;
+      build(2 * node + 1, lx, m, arr); 
+      build(2 * node + 2, m, rx, arr);
+      // recalc
+      tree[node] = tree[2 * node + 1] + tree[2 * node + 2];
+   }
+
+   template<typename T>
+   void build(vector<T>& arr) {
+      build(0, 0, size, arr);
+   }
+
+   // set operation
+   template<typename T> 
+   void set(int node, int lx, int rx, int i, T v) {
+      if(rx - lx == 1) {
+         // leaf
+         tree[node] = v;
+         return;
+      }
+      int m = (lx + rx) >> 1;
+      if(i < m) {
+         set(2 * node + 1, lx, m, i, v);
+      } else {
+         set(2 * node + 2, m, rx, i, v);
+      }
+      // recalc
+      tree[node] = tree[2 * node + 1] + tree[2 * node + 2];
+   }
+
+   
+   template<typename T>
+   void set(int i, T v) {
+      set(0, 0, size, i, v);
+   }
+
+   // calc operation
+   long long calc(int node, int lx, int rx, int l, int r) {
+      // disjoint
+      if(rx <= l || r <= lx) {
+         return 0LL;
+      }
+      // covered
+      if(l <= lx && rx <= r) {
+         return tree[node];
+      }
+      int m = (lx + rx) >> 1;
+      return calc(2 * node + 1, lx, m, l, r) + calc(2 * node + 2, m, rx, l, r);
+   }
+   
+   // sum from l...r-1
+   long long calc(int l, int r) {
+      return calc(0, 0, size, l, r);
+   }
+};
 
 void Main() {
+   int n, m;
+   cin >> n >> m;
+   vector<int> a(n);
+   for(auto& x: a) cin >> x;
 
+   Segtree st(n);
+   st.build(a);
+
+   while(m--) {
+      int t;
+      cin >> t;
+      if(t == 1) {
+         int i, v;
+         cin >> i >> v;
+         st.set(i, v);
+      } else {
+         int l, r;
+         cin >> l >> r;
+         cout << st.calc(l, r) << '\n';
+      }
+   }
 }
-
-#define MULTI 1	// 0 for single test case
 
 int main() {
 	ios::sync_with_stdio(0);cin.tie(NULL);cout.tie(NULL);
@@ -61,17 +114,8 @@ int main() {
    clock_t start = clock();
 #endif
 
-	int tt = 1;
-	if (MULTI) cin >> tt;
-
-	for(int test_case = 1; test_case <= tt; test_case++) {
-		debug(test_case);
-		Main();
-      #ifdef SARTHAK_LOCAL
-         cerr << "----------------------------------------------------------------------------------------------------------------------------------------" << '\n';
-      #endif
-	}
-
+   Main();
+   
 #ifdef SARTHAK_LOCAL
    clock_t end = clock();
    cerr << "Total Time: " << (double)(end - start) * 1e3 / CLOCKS_PER_SEC << "ms" << '\n';
