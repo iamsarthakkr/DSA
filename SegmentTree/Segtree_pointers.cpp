@@ -1,32 +1,7 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
 
-#ifdef SARTHAK_LOCAL
-#include "/Users/sarthakkumar/cpp/templates/CompCoding/debug.cpp"
-#else 
-#define debug(...) 69
-#endif
-
-struct Info {
-   int min;
-   int count;
-
-   Info() { // empty element neutral
-      min = (int)2e9;
-      count = 0;
-   }
-   Info(int v) {  // single
-      min = v;
-      count = 1;
-   }
-   static Info merge(const Info& a, const Info& b) {
-      Info res;
-      res.min = std::min(a.min, b.min);
-      res.count = (a.min == res.min ? a.count : 0) + (b.min == res.min ? b.count : 0);
-      return res;
-   };
-};
-
+template<typename Info>
 struct Segtree {
    Info node;
    int leftmost, rightmost;
@@ -49,9 +24,9 @@ struct Segtree {
       return Info::merge(s1, s2);
    }
 
-   void set(int i, int v) {
+   void set(int i, const Info& v) {
       if(rightmost - leftmost == 1) {
-         node = { v };
+         node = v;
          return;
       }
 
@@ -80,51 +55,30 @@ private:
       right->build(m, r, arr);
       recalc();
    }
+
    void recalc() {
       if(rightmost - leftmost == 1) return;
-      node =  Info::merge(left->node, right->node);
+      Info::unite(node, left->node, right->node);
    }
 };
 
-void Main() {
-   int n, m;
-   cin >> n >> m;
-   vector<int> a(n);
-   for(auto& x: a) cin >> x;
+struct Info {
+   long long v;
 
-   vector<Info> info(n);
-   for(int i = 0; i < n; i++) info[i] = Info(a[i]);
-   Segtree st(info);
-
-   while(m--) {
-      int t;
-      cin >> t;
-      if(t == 1) {
-         int i, v;
-         cin >> i >> v;
-         st.set(i, v);
-      } else {
-         int l, r;
-         cin >> l >> r;
-         auto res = st.calc(l, r);
-         cout << res.min << " " << res.count << '\n';
-      }
+   Info() { // empty element neutral
+      v = 0;
    }
-}
+   Info(int v) {  // single
+      v = v;
+   }
 
-int main() {
-	ios::sync_with_stdio(0);cin.tie(NULL);cout.tie(NULL);
-	cout << setprecision(12) << fixed;
-#ifdef SARTHAK_LOCAL
-   freopen("./input.txt", "r", stdin); freopen("./output.txt", "w", stdout);
-   clock_t start = clock();
-#endif
+   static Info merge(const Info& a, const Info& b) {
+      Info res;
+      unite(res, a, b);
+      return res;
+   };
 
-   Main();
-   
-#ifdef SARTHAK_LOCAL
-   clock_t end = clock();
-   cerr << "Total Time: " << (double)(end - start) * 1e3 / CLOCKS_PER_SEC << "ms" << '\n';
-#endif
-   return 0;
-}
+   static void unite(Info& node, const Info& a, const Info& b) {
+      node.v = a.v + b.v;
+   }
+};

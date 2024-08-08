@@ -1,30 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#ifdef SARTHAK_LOCAL
-#include "/Users/sarthakkumar/cpp/templates/CompCoding/debug.cpp"
-#else 
-#define debug(...) 69
-#endif
-
-struct Info {
-   int val;
-
-   Info() { // empty element neutral
-      val = 0;
-   }
-   
-   Info(int v) {  // single
-      val = v;
-   }
-
-   static Info merge(const Info& a, const Info& b) {
-      Info res;
-      res.val = a.val + b.val;
-      return res;
-   }
-};
-
+template<typename Info>
 struct Segtree {
    int size;
    vector<Info> tree;
@@ -39,8 +16,7 @@ struct Segtree {
    }
 
    // set operation
-   template<typename T> 
-   void set(int node, int lx, int rx, int i, T v) {
+   void set(int node, int lx, int rx, int i, const Info& v) {
       if(rx - lx == 1) {
          // leaf
          tree[node] = v;
@@ -52,12 +28,10 @@ struct Segtree {
       } else {
          set(2 * node + 2, m, rx, i, v);
       }
-      // recalc
-      tree[node] = Info::merge(tree[2 * node + 1], tree[2 * node + 2]);
+      recalc(node, lx, rx);
    }
    
-   template<typename T>
-   void set(int i, T v) {
+   void set(int i, const Info& v) {
       set(0, 0, size, i, v);
    }
 
@@ -82,6 +56,14 @@ struct Segtree {
       return calc(0, 0, size, l, r);
    }
 
+private:
+   void recalc(int node, int lx, int rx) {
+      if(rx - lx == 1) {
+         return;
+      }
+      Info::unite(tree[node], tree[2 * node + 1], tree[2 * node + 2]);
+   }
+
 private: 
    void init(int n) {
       size = 1;
@@ -100,28 +82,31 @@ private:
       int m = (lx + rx) >> 1;
       build(2 * node + 1, lx, m, arr); 
       build(2 * node + 2, m, rx, arr);
-      // recalc
-      tree[node] = Info::merge(tree[2 * node + 1], tree[2 * node + 2]);
+
+      recalc(node, lx, rx);
    }
 };
 
-void Main() {
-   
-}
+struct Info {
+   int val;
 
-int main() {
-	ios::sync_with_stdio(0);cin.tie(NULL);cout.tie(NULL);
-	cout << setprecision(12) << fixed;
-#ifdef SARTHAK_LOCAL
-   freopen("./input.txt", "r", stdin); freopen("./output.txt", "w", stdout);
-   clock_t start = clock();
-#endif
-
-   Main();
+   Info() { // Neutral element
+      val = 0;
+   }
    
-#ifdef SARTHAK_LOCAL
-   clock_t end = clock();
-   cerr << "Total Time: " << (double)(end - start) * 1e3 / CLOCKS_PER_SEC << "ms" << '\n';
-#endif
-   return 0;
-}
+   Info(int v) { // single
+      val = v;
+   }
+
+   static Info merge(const Info& a, const Info& b) {
+      Info res;
+      unite(res, a, b);
+      return res;
+   }
+
+   static void unite(Info& node, const Info& a, const Info& b) {
+      node.val = a.val + b.val;
+   }
+};
+
+/* usage -> Segtree<Info> st(infos) */
