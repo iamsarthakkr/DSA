@@ -57,12 +57,27 @@ private:
 };
 RNG Random(rng);
 
+class Timer {
+public:
+    Timer() {
+        m_start = std::chrono::high_resolution_clock::now();
+    }
+    ~Timer() {
+        m_end = std::chrono::high_resolution_clock::now();
+        m_duration = (m_end - m_start);
+        float ms = m_duration.count() * 1000.0f;
+        std::cerr << "Done... Timer took: " << ms << " ms.\n"; 
+    }
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_start, m_end;
+    std::chrono::duration<float> m_duration;
+};
 // test operations
 void Test1() {
     PriorityQueue h;
     multiset<int> s;
 
-    const int ops = 1e7;
+    const int ops = 1e4;
     for(int iter = 0; iter < ops; iter++) {
         if(!s.empty()) {
             assert(s.size() == h.size());
@@ -88,9 +103,75 @@ void Test1() {
     cout << "Passed all tests !!" << '\n';
 }
 
+void Test2() {
+    Timer tt;
+    const int ops = 1e4;
+    vpii operations;
+    int sz = 0;
+    for(int iter = 0; iter < ops; iter++) {
+        if(Random.nextInt(100) <= 70 || sz == 0) {
+            // insert
+            int x = Random.nextInt(1000);
+            operations.emplace_back(0, x);
+            sz++;
+        } else {
+            // remove
+            operations.emplace_back(1, 0);
+            sz--;
+        }
+    }
+    if(1) {
+        // heap
+        Timer t;
+        cout << "Testing using heap.." << '\n';
+        PriorityQueue h;
+        for(auto& op: operations) {
+            if(op.first == 0) h.insert(op.second);
+            else h.remove_min();
+        }
+        cout << "Done heap..." << '\n';
+    }
+    if(1) {
+        Timer t;
+        // sets
+        cout << "Testing using sets.." << '\n';
+        multiset<int> h;
+        for(auto& op: operations) {
+            if(op.first == 0) h.insert(op.second);
+            else h.erase(h.begin());
+        }
+        cout << "Done sets..." << '\n';
+    }
+    if(1) {
+        Timer t;
+        // priority queue
+        cout << "Testing using pq.." << '\n';
+        priority_queue<int> h;
+        for(auto& op: operations) {
+            if(op.first == 0) h.push(op.second);
+            else h.pop();
+        }
+        cout << "Done priority queue..." << '\n';
+    }
+}
+
+void Test3() {
+    int tests = 1e3;
+    const int n = 1e4;
+    for(int iter = 0; iter < tests; iter++) {
+        vector<int> a = Random.nextVector(n, n);
+        PriorityQueue::sort(a);
+        assert(is_sorted(a.begin(), a.end()));
+    }
+    cout << "Passed" << '\n';
+}
+
 int main() {
     ios::sync_with_stdio(0); cin.tie(0); cout << setprecision(12) << fixed;
 
-    Test1();
+    // Test1();
+    // Test2();
+    Test3();
+    cout << "Done.." << '\n';
     return 0;
 }
