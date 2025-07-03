@@ -1,26 +1,41 @@
 #include<bits/stdc++.h>
 
+template<typename _Tp, typename _Container = std::vector<_Tp>,
+    typename _Comp = std::less_equal<typename _Container::value_type> >
 class Heap {
+typedef _Tp Type;
+typedef _Comp Comparator;
 public:
-    virtual void insert(int x) = 0;
-    virtual int top() = 0;
-    virtual int remove_min() = 0;
+    Heap() {}
+    virtual void insert(Type x) = 0;
+    virtual Type top() = 0;
+    virtual Type remove_min() = 0;
     virtual bool empty() = 0;
     virtual size_t size() = 0;
 };
 
+template< typename _Tp, typename _Container = std::vector<_Tp>,
+    typename _Comp = std::less_equal<typename _Container::value_type> >
+class PriorityQueue: Heap<_Tp, _Container, _Comp> {
 
-class PriorityQueue: Heap {
+typedef _Tp Type;
+typedef _Comp Comparator;
+
 public:
-    void insert(int x) {
-        m_h.push_back(x);
+    PriorityQueue() {
+        value_compare = Comparator();
+    }
+
+public:
+    void insert(Type x) {
+        m_h.emplace_back(x);
         shift_up(m_h, (int)m_h.size() - 1);
     }
-    int top() {
+    Type top() {
         return m_h.front();
     }
-    int remove_min() {
-        int min = m_h.front();
+    Type remove_min() {
+        Type min = m_h.front();
         std::swap(m_h.front(), m_h.back());
         m_h.pop_back();
         shift_down(m_h, (int)m_h.size(), 0);
@@ -30,7 +45,7 @@ public:
     size_t size() { return m_h.size(); }
 
 public:
-    static void sort(std::vector<int>& a) {
+    static void sort(std::vector<Type>& a) {
         heapify(a);
         for(int i = (int)a.size() - 1; i >= 0; --i) {
             std::swap(a[0], a[i]);
@@ -44,17 +59,19 @@ private:
     static int right(int i) { return 2 * i + 2; }
     static int parent(int i) { return (i - 1) >> 1; }
 
-    static void shift_down(std::vector<int>& a, int size, int i) {
+    static void shift_down(std::vector<Type>& a, int size, int i) {
+        static auto compare = Comparator();
         while(left(i) < size) {
             int j = left(i);
             if(right(i) < size && a[right(i)] < a[j]) j = right(i);
-            if(a[i] <= a[j]) break;
+            if(compare(a[i], a[j])) break;
             std::swap(a[i], a[j]);
             i = j;
         }
     }
     static void shift_up(std::vector<int>& a, int i) {
-        while(i > 0 && a[parent(i)] > a[i]) {
+        static auto compare = Comparator();
+        while(i > 0 && !compare(a[parent(i)], a[i])) {
             std::swap(a[i], a[parent(i)]);
             i = parent(i);
         }
@@ -65,5 +82,6 @@ private:
         }
     }
 private:
-    std::vector<int> m_h;
+    std::vector<Type> m_h;
+    Comparator value_compare;
 };

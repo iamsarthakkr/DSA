@@ -28,7 +28,7 @@ typedef vector<pll> vpll;
 #define sq(x) (x) * (x)
 
 #ifdef SARTHAK_LOCAL
-#include "/Users/sarthakkumar/cpp/templates/CompCoding/debug.cpp"
+#include "/Users/sarthakkumar/Work/Cpp/Templates/debug.cpp"
 #else 
 #define debug(...) 69
 #endif
@@ -74,8 +74,11 @@ private:
 };
 // test operations
 void Test1() {
-    PriorityQueue h;
+    PriorityQueue<int> h;
     multiset<int> s;
+    
+
+    auto comp = less<int>();
 
     const int ops = 1e4;
     for(int iter = 0; iter < ops; iter++) {
@@ -124,7 +127,7 @@ void Test2() {
         // heap
         Timer t;
         cout << "Testing using heap.." << '\n';
-        PriorityQueue h;
+        PriorityQueue<int> h;
         for(auto& op: operations) {
             if(op.first == 0) h.insert(op.second);
             else h.remove_min();
@@ -160,7 +163,7 @@ void Test3() {
     const int n = 1e4;
     for(int iter = 0; iter < tests; iter++) {
         vector<int> a = Random.nextVector(n, n);
-        PriorityQueue::sort(a);
+        PriorityQueue<int>::sort(a);
         assert(is_sorted(a.begin(), a.end()));
     }
     cout << "Passed" << '\n';
@@ -169,8 +172,8 @@ void Test3() {
 int main() {
     ios::sync_with_stdio(0); cin.tie(0); cout << setprecision(12) << fixed;
 
-    // Test1();
-    // Test2();
+    Test1();
+    Test2();
     Test3();
     cout << "Done.." << '\n';
     return 0;
