@@ -27,7 +27,7 @@ typedef vector<pll> vpll;
 #define sq(x) (x) * (x)
 
 #ifdef SARTHAK_LOCAL
-#include "/Users/sarthakkumar/cpp/templates/CompCoding/debug.cpp"
+#include "/Users/sarthakkumar/Cpp/Templates/CompCoding/debug.cpp"
 #else 
 #define debug(...) 69
 #endif
@@ -78,7 +78,7 @@ void sort(vector<int>& a) {
     int n = (int) a.size();
 
     vector<int> aux(n);
-    auto solve = [&](auto&& self, int l, int r) -> void{
+    auto sortRec = [&](auto&& self, int l, int r) -> void{
         if(r - l == 1) return;
         int m = (r + l) >> 1;
         self(self, l, m);
@@ -96,7 +96,7 @@ void sort(vector<int>& a) {
             a[l + i] = aux[i];
         }
     };
-    solve(solve, 0, n);
+    sortRec(sortRec, 0, n);
 }
 
 int main() {
