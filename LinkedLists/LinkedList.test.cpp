@@ -19,6 +19,13 @@ void Test_insertions() {
 
     ll.push_front(5);
     ll.print();
+
+    LinkedList<int> ll2;
+
+    ll2.push(0, 2);
+    ll2.push(0, 1);
+    ll2.push(1, 3);
+    ll2.print();
 }
 
 void Test_deletions() {
@@ -40,6 +47,6 @@ void Test_deletions() {
 
 int main() {
     // Test_init();
-    // Test_insertions();
+    Test_insertions();
     Test_deletions();
 }
