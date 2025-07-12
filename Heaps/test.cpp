@@ -1,5 +1,5 @@
-#include <bits/stdc++.h>
 #include "Heap.hpp"
+#include <bits/stdc++.h>
 using namespace std;
 
 typedef long long ll;
@@ -29,7 +29,7 @@ typedef vector<pll> vpll;
 
 #ifdef SARTHAK_LOCAL
 #include "/Users/sarthakkumar/Work/Cpp/Templates/debug.cpp"
-#else 
+#else
 #define debug(...) 69
 #endif
 
@@ -37,11 +37,12 @@ mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 // mt19937_64 rng(69);
 
 class RNG {
-typedef long long ll;
-public:
-    RNG(const mt19937_64& _rng): m_rng(_rng) {}
+    typedef long long ll;
 
-public:
+  public:
+    RNG(const mt19937_64 &_rng) : m_rng(_rng) {}
+
+  public:
     int nextInt() { return nextInt(INT32_MAX); }
     int nextInt(int x) { return (int)nextLong(ll(x)); }
     int nextInt(int a, int b) { return (int)nextLong(ll(a), ll(b)); }
@@ -49,26 +50,35 @@ public:
     ll nextLong(ll x) { return std::uniform_int_distribution<ll>(0, x - 1)(m_rng); }
     ll nextLong(ll a, ll b) { return std::uniform_int_distribution<ll>(a, b - 1)(m_rng); }
     bool nextBoolean() { return nextInt(2); }
-    vector<int> nextVector(int n, int mx = 1e9) { vector<int> a(n); for (int& x : a) x = nextInt(mx + 1); return a; }
-    vector<ll> nextVector(int n, ll mx = 1e18) { vector<ll> a(n); for (ll& x : a) x = nextLong(mx + 1); return a; }
-    
-private:
+    vector<int> nextVector(int n, int mx = 1e9) {
+        vector<int> a(n);
+        for(int &x : a)
+            x = nextInt(mx + 1);
+        return a;
+    }
+    vector<ll> nextVector(int n, ll mx = 1e18) {
+        vector<ll> a(n);
+        for(ll &x : a)
+            x = nextLong(mx + 1);
+        return a;
+    }
+
+  private:
     mt19937_64 m_rng;
 };
 RNG Random(rng);
 
 class Timer {
-public:
-    Timer() {
-        m_start = std::chrono::high_resolution_clock::now();
-    }
+  public:
+    Timer() { m_start = std::chrono::high_resolution_clock::now(); }
     ~Timer() {
         m_end = std::chrono::high_resolution_clock::now();
         m_duration = (m_end - m_start);
         float ms = m_duration.count() * 1000.0f;
-        std::cerr << "Done... Timer took: " << ms << " ms.\n"; 
+        std::cerr << "Done... Timer took: " << ms << " ms.\n";
     }
-private:
+
+  private:
     std::chrono::time_point<std::chrono::high_resolution_clock> m_start, m_end;
     std::chrono::duration<float> m_duration;
 };
@@ -76,7 +86,6 @@ private:
 void Test1() {
     PriorityQueue<int> h;
     multiset<int> s;
-    
 
     auto comp = less<int>();
 
@@ -128,9 +137,11 @@ void Test2() {
         Timer t;
         cout << "Testing using heap.." << '\n';
         PriorityQueue<int> h;
-        for(auto& op: operations) {
-            if(op.first == 0) h.insert(op.second);
-            else h.remove_min();
+        for(auto &op : operations) {
+            if(op.first == 0)
+                h.insert(op.second);
+            else
+                h.remove_min();
         }
         cout << "Done heap..." << '\n';
     }
@@ -139,9 +150,11 @@ void Test2() {
         // sets
         cout << "Testing using sets.." << '\n';
         multiset<int> h;
-        for(auto& op: operations) {
-            if(op.first == 0) h.insert(op.second);
-            else h.erase(h.begin());
+        for(auto &op : operations) {
+            if(op.first == 0)
+                h.insert(op.second);
+            else
+                h.erase(h.begin());
         }
         cout << "Done sets..." << '\n';
     }
@@ -150,9 +163,11 @@ void Test2() {
         // priority queue
         cout << "Testing using pq.." << '\n';
         priority_queue<int> h;
-        for(auto& op: operations) {
-            if(op.first == 0) h.push(op.second);
-            else h.pop();
+        for(auto &op : operations) {
+            if(op.first == 0)
+                h.push(op.second);
+            else
+                h.pop();
         }
         cout << "Done priority queue..." << '\n';
     }
@@ -170,7 +185,9 @@ void Test3() {
 }
 
 int main() {
-    ios::sync_with_stdio(0); cin.tie(0); cout << setprecision(12) << fixed;
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cout << setprecision(12) << fixed;
 
     Test1();
     Test2();
