@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <complex>
 #include <iostream>
 #include <vector>
 template <typename T>
@@ -62,6 +63,15 @@ class DoublyLinkedList {
         std::cout << '\n';
     }
 
+    void reverse() {
+
+        for(auto node = m_head; node != nullptr;) {
+            std::swap(node->next, node->prev);
+            node = node->prev;
+        }
+        std::swap(m_head, m_tail);
+    }
+
   private:
     void insert_node(size_t pos, const T &val) {
         if(pos > m_size) {
@@ -88,7 +98,7 @@ class DoublyLinkedList {
         }
 
         Node<T> *curr = m_head;
-        for(int i = 0; i <= pos; i++) {
+        for(size_t i = 0; i <= pos; i++) {
             curr = curr->next;
         }
 

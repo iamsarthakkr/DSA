@@ -49,8 +49,19 @@ void Test_deletions() {
     dll.print();
 }
 
+void Test_reverse() {
+
+    std::vector<int> v = {1, 2, 3, 4};
+    DoublyLinkedList<int> dll(v);
+
+    dll.print();
+    dll.reverse();
+    dll.print();
+}
+
 int main() {
     // Test_init();
     // Test_insertions();
-    Test_deletions();
+    // Test_deletions();
+    Test_reverse();
 }
