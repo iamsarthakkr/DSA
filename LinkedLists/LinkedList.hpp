@@ -44,6 +44,7 @@ class LinkedList {
             node = node->next;
         }
         std::cout << '\n';
+        insert_node(size_t pos, const T &val)
     }
 
   private:
