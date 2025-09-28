@@ -1,149 +1,195 @@
+
 #include <bits/stdc++.h>
+
+/*
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>template
+*/
+
 using namespace std;
+// using namespace __gnu_pbds;
+
+// typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> ordered_set;
+
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double lld;
+typedef pair<int, int> pii;
+typedef pair<long long, long long> pll;
+typedef vector<int> vi;
+typedef vector<ll> vll;
+typedef vector<vi> vvi;
+typedef vector<vll> vvll;
+typedef vector<pii> vpii;
+typedef vector<pll> vpll;
+
+#define pb push_back
+#define fi first
+#define se second
+#define forn(i, n) for(int i = 0; i < n; i++)
+#define forv(x, a) for(auto &x : a)
+#define ford(i, n) for(int i = n - 1; i >= 0; i--)
+#define for1(i, n) for(int i = 1; i <= n; i++)
+#define forr(i, l, r) for(int i = l; i <= r; i++)
+#define forrd(i, l, r) for(int i = r; i >= l; i--)
+#define all(a) (a).begin(), (a).end()
+#define rall(a) (a).rbegin(), (a).rend()
+#define len(a) (int)(a).size()
+#define sq(x) (x) * (x)
 
 #ifdef SARTHAK_LOCAL
-#include "/Users/sarthakkumar/cpp/templates/CompCoding/debug.cpp"
-#else 
+#include "/Users/sarthakkumar/work/Cpp/Templates/CP_Templates/debug.cpp"
+#else
 #define debug(...) 69
 #endif
 
-struct Segtree {
-   struct Item {
-      int min;
-      int count;
-
-      Item() { // empty element neutral
-         min = INT_MAX;
-         count = 0;
-      }
-      Item(int v) {  // single
-         min = v;
-         count = 1;
-      }
-   };
-   int size;
-   vector<Item> tree;
-
-   const Item NETURAL_ELEMENT;
-
-   Item merge(const Item& a, const Item& b) {
-      Item res;
-      res.min = min(a.min, b.min);
-      if(a.min == res.min) res.count += a.count;
-      if(b.min == res.min) res.count += b.count;
-      return res;
-   }
-
-   Segtree(int n) {
-      size = 1;
-      while(size < n) size *= 2;
-      tree.assign(2 * size, NETURAL_ELEMENT);
-   }
-
-   template<typename T>
-   void build(int node, int lx, int rx, vector<T>& arr) {
-      if(rx - lx == 1) {
-         // leaf
-         if(lx < (int)arr.size()) {
-            tree[node] = { arr[lx] }; // single
-         }
-         return;
-      }
-      int m = (lx + rx) >> 1;
-      build(2 * node + 1, lx, m, arr); 
-      build(2 * node + 2, m, rx, arr);
-      // recalc
-      tree[node] = merge(tree[2 * node + 1], tree[2 * node + 2]);
-   }
-
-   template<typename T>
-   void build(vector<T>& arr) {
-      build(0, 0, size, arr);
-   }
-
-   // set operation
-   template<typename T> 
-   void set(int node, int lx, int rx, int i, T v) {
-      if(rx - lx == 1) {
-         // leaf
-         tree[node] = v;
-         return;
-      }
-      int m = (lx + rx) >> 1;
-      if(i < m) {
-         set(2 * node + 1, lx, m, i, v);
-      } else {
-         set(2 * node + 2, m, rx, i, v);
-      }
-      // recalc
-      tree[node] = merge(tree[2 * node + 1], tree[2 * node + 2]);
-   }
-   
-   template<typename T>
-   void set(int i, T v) {
-      set(0, 0, size, i, v);
-   }
-
-   // calc operation
-   Item calc(int node, int lx, int rx, int l, int r) {
-      // disjoint
-      if(rx <= l || r <= lx) {
-         return NETURAL_ELEMENT;
-      }
-      // covered
-      if(l <= lx && rx <= r) {
-         return tree[node];
-      }
-      int m = (lx + rx) >> 1;
-      auto s1 = calc(2 * node + 1, lx, m, l, r);
-      auto s2 = calc(2 * node + 2, m, rx, l, r);
-      return merge(s1, s2);
-   }
-   
-   // function from l...r-1
-   Item calc(int l, int r) {
-      return calc(0, 0, size, l, r);
-   }
-};
-
-void Main() {
-   int n, m;
-   cin >> n >> m;
-   vector<int> a(n);
-   for(auto& x: a) cin >> x;
-
-   Segtree st(n);
-   st.build(a);
-
-   while(m--) {
-      int t;
-      cin >> t;
-      if(t == 1) {
-         int i, v;
-         cin >> i >> v;
-         st.set(i, v);
-      } else {
-         int l, r;
-         cin >> l >> r;
-         auto res = st.calc(l, r);
-         cout << res.min << " " << res.count << '\n';
-      }
-   }
+template <typename T> T gcd(T a, T b) {
+    while(b) {
+        a %= b;
+        swap(a, b);
+    }
+    return a;
 }
 
+bool islower(char c) { return c >= 'a' && c <= 'z'; }
+bool isupper(char c) { return c >= 'A' && c <= 'Z'; }
+void tolower(char &c) { c = isupper(c) ? c = 'a' + (c - 'A') : c; }
+void toupper(char &c) { c = islower(c) ? c = 'A' + (c - 'a') : c; }
+template <typename T> bool cmin(T &a, T b) { return b < a ? a = b, 1 : 0; }
+template <typename T> bool cmax(T &a, T b) { return b > a ? a = b, 1 : 0; }
+
+template <typename Node>
+class SegtreeImpl {
+  public:
+    explicit SegtreeImpl(int n) { init(n); }
+    explicit SegtreeImpl(const vector<Node> &info) : SegtreeImpl((int)info.size()) { build(1, 0, m_size, info); }
+    template <typename T>
+    explicit SegtreeImpl(vector<T> &info) : SegtreeImpl((int)info.size()) { build(1, 0, m_size, info); }
+
+    void set(int i, const Node &v) { setImpl(1, 0, m_size, i, v); }
+    Node calc(int l, int r) { return calcImpl(1, 0, m_size, l, r); }
+
+  private:
+    void setImpl(int node, int lx, int rx, int i, const Node &v) {
+        if(rx - lx == 1) {
+            m_tree[node] = v;
+            return;
+        }
+        int m = (lx + rx) >> 1;
+        if(i < m) {
+            setImpl(node << 1, lx, m, i, v);
+        } else {
+            setImpl(node << 1 | 1, m, rx, i, v);
+        }
+        recalc(node, lx, rx);
+    }
+
+    Node calcImpl(int node, int lx, int rx, int l, int r) {
+        if(rx <= l || r <= lx) return Node();
+        if(l <= lx && rx <= r) return m_tree[node];
+        int m = (lx + rx) >> 1;
+        auto s1 = calcImpl(node << 1, lx, m, l, r);
+        auto s2 = calcImpl(node << 1 | 1, m, rx, l, r);
+        return Node::merge(s1, s2);
+    }
+
+  private:
+    void recalc(int node, int lx, int rx) {
+        if(rx - lx == 1) return;
+        m_tree[node] = Node::merge(m_tree[node << 1], m_tree[node << 1 | 1]);
+    }
+
+    void init(int n) {
+        m_size = 1;
+        while(m_size < n) m_size <<= 1;
+        m_tree.resize(2 * m_size, Node());
+    }
+
+    template <typename T>
+    void build(int node, int lx, int rx, vector<T> &arr) {
+        if(rx - lx == 1) {
+            if(lx < (int)arr.size()) m_tree[node] = arr[lx];
+            return;
+        }
+        int m = (lx + rx) >> 1;
+        build(node << 1, lx, m, arr);
+        build(node << 1 | 1, m, rx, arr);
+
+        recalc(node, lx, rx);
+    }
+
+  private:
+    int m_size;
+    vector<Node> m_tree;
+};
+
+template <typename T>
+struct SumNode {
+    T min;
+    int cnt;
+    SumNode() : min(T(2e9)), cnt(0) {}
+    SumNode(const T &v) : min(v), cnt(1) {}
+
+    static SumNode merge(const SumNode &a, const SumNode &b) {
+        SumNode res;
+        res.min = std::min(a.min, b.min);
+        res.cnt = (a.min == res.min ? a.cnt : 0) + (b.min == res.min ? b.cnt : 0);
+        return res;
+    }
+};
+
+template <typename T> using Segtree = SegtreeImpl<SumNode<T>>;
+
+void Main(int tc) {
+
+    int n, m;
+    cin >> n >> m;
+    vector<int> a(n);
+    for(auto &x : a) cin >> x;
+
+    Segtree<int> st(a);
+
+    while(m--) {
+        int t;
+        cin >> t;
+        if(t == 1) {
+            int i, v;
+            cin >> i >> v;
+            st.set(i, v);
+        } else {
+            int l, r;
+            cin >> l >> r;
+            auto nd = st.calc(l, r);
+            cout << nd.min << " " << nd.cnt << '\n';
+        }
+    }
+}
+
+// #define MULTI // comment for single test
+
 int main() {
-	ios::sync_with_stdio(0);cin.tie(NULL);cout.tie(NULL);
-	cout << setprecision(12) << fixed;
-#ifdef SARTHAK_LOCAL
-   freopen("./input.txt", "r", stdin); freopen("./output.txt", "w", stdout);
-   clock_t start = clock();
+    ios::sync_with_stdio(0), cin.tie(NULL), cout << setprecision(12) << fixed;
+
+    int tt = 1;
+#ifdef MULTI
+    cin >> tt;
 #endif
 
-   Main();
-   
+    for(int t = 1; t <= tt; t++) {
 #ifdef SARTHAK_LOCAL
-   clock_t end = clock();
-   cerr << "Total Time: " << (double)(end - start) * 1e3 / CLOCKS_PER_SEC << "ms" << '\n';
+        cerr << "Test Case: #" << t << '\n';
+        cerr << "---------------" << '\n';
 #endif
-   return 0;
+
+        Main(t);
+
+#ifdef SARTHAK_LOCAL
+        cerr << "---------------" << '\n';
+#endif
+    }
+
+#ifdef SARTHAK_LOCAL
+    cerr << "Total Time: " << (double)clock() * 1e3 / CLOCKS_PER_SEC << "ms" << '\n';
+#endif
+    return 0;
 }
