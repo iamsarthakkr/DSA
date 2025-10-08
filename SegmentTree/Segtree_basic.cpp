@@ -3,8 +3,7 @@ using namespace std;
 
 /******************** Segtree ********************/
 
-template <typename Node>
-class SegtreeImpl {
+template <typename Node> class SegtreeImpl {
   public:
     explicit SegtreeImpl(int n) { init(n); }
     explicit SegtreeImpl(const vector<Node> &info) : SegtreeImpl((int)info.size()) { build(1, 0, m_size, info); }
@@ -235,6 +234,34 @@ pair<T, int> rangeMinCountBruteForce(const vector<T> &a, int l, int r) {
 
 /******************** Tests ********************/
 
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+// mt19937_64 rng(69);
+
+class Random {
+    typedef long double ld;
+
+  public:
+    Random(const mt19937_64 &_rng) : m_rng(_rng) {}
+
+  public:
+    template <typename T> T next(T min, T max) { return static_cast<T>(uniform_real_distribution<ld>(static_cast<ld>(min), static_cast<ld>(max) + 1)(rng)); }
+    template <typename T> T next(T max = numeric_limits<T>::max()) { return next(static_cast<T>(0), max); }
+    template <typename T> vector<T> next_vector(int n, T max = numeric_limits<T>::max()) {
+        vector<T> ret(n);
+        for(auto &v : ret) v = next(max);
+        return ret;
+    }
+    template <typename T> vector<T> next_vector(int n, T min, T max) {
+        vector<T> ret(n);
+        for(auto &v : ret) v = next(min, max);
+        return ret;
+    }
+
+  private:
+    mt19937_64 m_rng;
+};
+Random Rng(rng);
+
 void test_sum_deterministic() {
     vector<long long> a = {1, 2, 3, 4, 5};
     SegtreeImpl<SumNode<long long>> seg(a);
@@ -280,7 +307,7 @@ void test_mincount_deterministic() {
 
 void test_maxRight_minLeft_sum_predicate() {
     // Find the longest prefix starting at l such that prefix sum <= K
-    vector<int> a = {2, -1, 3, 4, -2, 1};
+    vector<int> a = {2, 1, 3, 4, 2, 1};
     SegtreeImpl<SumNode<long long>> seg(a);
     long long K = 4;
     auto pred = [&](const SumNode<long long> &x) { return x.val <= K; };
@@ -315,25 +342,24 @@ void test_maxRight_minLeft_sum_predicate() {
     assert(l2 == lb);
 }
 
-void randomized_crosscheck_sum(int N = 200, int Q = 200) {
-    std::mt19937 rng(123);
-    for(int it = 0; it < 50; ++it) {
-        int n = rng() % N + 1;
-        vector<long long> a(n);
-        for(int i = 0; i < n; ++i) a[i] = (rng() % 200) - 100;
+void randomized_sum(int tests = 1000, int N = 5000, int Q = 5000) {
+    for(int it = 0; it < tests; ++it) {
+        int n = Rng.next(1, N);
+        const long long mx = 1e6;
+        vector<long long> a = Rng.next_vector(n, mx);
 
         SegtreeImpl<SumNode<long long>> seg(a);
 
         for(int q = 0; q < Q; ++q) {
-            int type = rng() % 3;
+            int type = Rng.next(4);
             if(type == 0) { // set
-                int i = rng() % n;
-                long long v = (rng() % 200) - 100;
-                seg.set(i, SumNode<long long>(v));
+                int i = Rng.next(n - 1);
+                long long v = Rng.next(mx);
+                seg.set(i, v);
                 a[i] = v;
-            } else if(type == 1) { // calc
-                int l = rng() % (n + 1);
-                int r = rng() % (n + 1);
+            } else if(type == 1) {
+                int l = Rng.next(n - 1);
+                int r = Rng.next(n);
                 if(l > r) swap(l, r);
                 auto got = seg.calc(l, r).val;
                 auto bf = rangeSumBruteForce(a, l, r);
@@ -341,9 +367,9 @@ void randomized_crosscheck_sum(int N = 200, int Q = 200) {
                     cerr << "Sum mismatch: got=" << got << " bf=" << bf << " l=" << l << " r=" << r << "\n";
                     assert(false);
                 }
-            } else { // maxRight with K
-                int l = rng() % n;
-                long long K = (rng() % 400) - 100;
+            } else if(type == 2) {
+                int l = Rng.next<int>(n - 1);
+                long long K = Rng.next(mx * n);
                 auto pred = [&](const SumNode<long long> &x) { return x.val <= K; };
                 int r = seg.maxRight(l, pred);
 
@@ -360,32 +386,51 @@ void randomized_crosscheck_sum(int N = 200, int Q = 200) {
                     cerr << "maxRight mismatch: got=" << r << " bf=" << rb << " l=" << l << " K=" << K << "\n";
                     assert(false);
                 }
+            } else if(type == 3) {
+                int r = Rng.next(1, n);
+                long long K = Rng.next<long long>(mx * n);
+                auto pred = [&](const SumNode<long long> &x) { return x.val <= K; };
+
+                int l = seg.minLeft(r, pred);
+
+                long long s = 0;
+                int lb = r;
+                for(int i = r - 1; i >= 0; --i) {
+                    if(s + a[i] <= K) {
+                        s += a[i];
+                        lb = i;
+                    } else
+                        break;
+                }
+                if(l != lb) {
+                    cerr << "minLeft mismatch: got=" << l << " bf=" << lb << " r=" << r << " K=" << K << "\n";
+                    assert(false);
+                }
             }
         }
     }
 }
 
-void randomized_crosscheck_max_min(int N = 200, int Q = 200) {
-    std::mt19937 rng(321);
-    for(int it = 0; it < 40; ++it) {
-        int n = rng() % N + 1;
-        vector<int> a(n);
-        for(int i = 0; i < n; ++i) a[i] = (rng() % 200) - 100;
+void randomized_max_min(int tests = 1000, int N = 5000, int Q = 5000) {
+    for(int it = 0; it < tests; ++it) {
+        int n = Rng.next(1, N);
+        const int mx = 1e8;
+        vector<int> a = Rng.next_vector(n, mx);
 
         SegtreeImpl<MaxNode<int>> segMax(a);
         SegtreeImpl<MinNode<int>> segMin(a);
 
         for(int q = 0; q < Q; ++q) {
-            int type = rng() % 3;
+            int type = Rng.next(1);
             if(type == 0) {
-                int i = rng() % n;
-                int v = (rng() % 200) - 100;
-                segMax.set(i, MaxNode<int>(v));
-                segMin.set(i, MinNode<int>(v));
+                int i = Rng.next(n - 1);
+                int v = Rng.next(mx);
+                segMax.set(i, v);
+                segMin.set(i, v);
                 a[i] = v;
             } else {
-                int l = rng() % (n + 1);
-                int r = rng() % (n + 1);
+                int l = Rng.next(n - 1);
+                int r = Rng.next(n);
                 if(l > r) swap(l, r);
                 auto gmax = segMax.calc(l, r).val;
                 auto gmin = segMin.calc(l, r).val;
@@ -400,25 +445,24 @@ void randomized_crosscheck_max_min(int N = 200, int Q = 200) {
     }
 }
 
-void randomized_crosscheck_mincount(int N = 200, int Q = 200) {
-    std::mt19937 rng(777);
-    for(int it = 0; it < 30; ++it) {
-        int n = rng() % N + 1;
-        vector<int> a(n);
-        for(int i = 0; i < n; ++i) a[i] = (rng() % 50) - 25;
+void randomized_min_count(int tests = 1000, int N = 5000, int Q = 5000) {
+    const int mx = 1e6;
+    for(int it = 0; it < tests; ++it) {
+        int n = Rng.next(N);
+        vector<int> a = Rng.next_vector(n, mx);
 
         SegtreeImpl<MinCountNode<int>> seg(a);
 
         for(int q = 0; q < Q; ++q) {
-            int type = rng() % 2;
+            int type = Rng.next(1);
             if(type == 0) {
-                int i = rng() % n;
-                int v = (rng() % 50) - 25;
+                int i = Rng.next(n - 1);
+                int v = Rng.next(mx);
                 seg.set(i, MinCountNode<int>(v));
                 a[i] = v;
             } else {
-                int l = rng() % (n + 1);
-                int r = rng() % (n + 1);
+                int l = Rng.next(n - 1);
+                int r = Rng.next(n);
                 if(l > r) swap(l, r);
                 auto got = seg.calc(l, r);
                 auto bf = rangeMinCountBruteForce(a, l, r);
@@ -444,9 +488,9 @@ int main() {
     test_maxRight_minLeft_sum_predicate();
 
     // Randomized cross-checks vs brute force
-    randomized_crosscheck_sum();
-    randomized_crosscheck_max_min();
-    randomized_crosscheck_mincount();
+    randomized_sum();
+    randomized_max_min();
+    randomized_min_count();
 
     cout << "All tests passed!\n";
     return 0;
