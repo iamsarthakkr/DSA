@@ -296,14 +296,11 @@ bool test_maxRight_minLeft_sum_predicate() {
 
 // ---------- randomized tests (use Brute; return bool) ----------
 
-constexpr bool verbose = true; // toggle live progress logging
-
 bool stress_sum(int tests = 300, int N = 1000, int Q = 30000) {
     using Node = packs::SumNode<long long>;
 
-    if(verbose)
-        cout << YELLOW << "\r[SUM TEST]\n"
-             << RESET;
+    cout << YELLOW << "\r[SUM TEST]\n"
+         << RESET;
 
     for(int it = 1; it <= tests; ++it) {
         int n = Rng.next(1, N);
@@ -389,10 +386,8 @@ bool stress_sum(int tests = 300, int N = 1000, int Q = 30000) {
             return false;
         }
 
-        if(verbose) {
-            cerr << GREEN << "\r[progress] " << setw(3) << it << "/" << tests
-                 << " tests passed ✅" << RESET << flush;
-        }
+        cerr << GREEN << "\r[progress] " << setw(3) << it << "/" << tests
+             << " tests passed ✅" << RESET << flush;
     }
 
     cerr << GREEN << "\n✅ stress_sum: all " << tests << " tests passed ("
@@ -405,10 +400,8 @@ bool stress_max_min(int tests = 200, int N = 1000, int Q = 30000) {
     using NodeMax = packs::MaxNode<int>;
     using NodeMin = packs::MinNode<int>;
 
-    if(verbose) {
-        cerr << YELLOW << "[MAX/MIN TEST]" << '\n'
-             << RESET;
-    }
+    cerr << YELLOW << "[MAX/MIN TEST]" << '\n'
+         << RESET;
 
     for(int it = 1; it <= tests; ++it) {
         int n = Rng.next(1, N);
@@ -451,9 +444,8 @@ bool stress_max_min(int tests = 200, int N = 1000, int Q = 30000) {
             }
         }
 
-        if(verbose)
-            cerr << GREEN << "\r[progress] " << setw(3) << it << "/" << tests
-                 << " tests passed ✅" << RESET << flush;
+        cerr << GREEN << "\r[progress] " << setw(3) << it << "/" << tests
+             << " tests passed ✅" << RESET << flush;
     }
 
     cerr << GREEN << "\n✅ stress_max_min: all " << tests
@@ -465,10 +457,8 @@ bool stress_max_min(int tests = 200, int N = 1000, int Q = 30000) {
 bool stress_maxRight_minLeft(int tests = 200, int N = 5000, int Q = 30000) {
     using Node = packs::SumNode<long long>;
 
-    if(verbose) {
-        cerr << YELLOW << "[MAXRIGHT/MINLEFT TEST]" << '\n'
-             << RESET;
-    }
+    cerr << YELLOW << "[MAXRIGHT/MINLEFT TEST]" << '\n'
+         << RESET;
 
     for(int it = 1; it <= tests; ++it) {
         int n = Rng.next(1, N);
@@ -536,11 +526,9 @@ bool stress_maxRight_minLeft(int tests = 200, int N = 5000, int Q = 30000) {
             }
         }
 
-        if(verbose)
-            cerr << GREEN << "\r[progress] " << setw(3) << it << "/" << tests
-                 << " tests passed ✅" << RESET << flush;
+        cerr << GREEN << "\r[progress] " << setw(3) << it << "/" << tests
+             << " tests passed ✅" << RESET << flush;
     }
-
     cerr << GREEN << "\n✅ stress_maxRight_minLeft: all " << tests
          << " tests passed (" << N << " max size, " << Q << " ops each)\n"
          << RESET;
@@ -550,10 +538,8 @@ bool stress_maxRight_minLeft(int tests = 200, int N = 5000, int Q = 30000) {
 bool stress_min_count(int tests = 300, int N = 1000, int Q = 30000) {
     using Node = packs::MinCountNode<int>;
 
-    if(verbose) {
-        cerr << YELLOW << "[MIN COUNT TEST]" << '\n'
-             << RESET;
-    }
+    cerr << YELLOW << "[MIN COUNT TEST]" << '\n'
+         << RESET;
 
     for(int it = 1; it <= tests; ++it) {
         int n = Rng.next(1, N);
@@ -597,16 +583,15 @@ bool stress_min_count(int tests = 300, int N = 1000, int Q = 30000) {
             }
         }
 
-        if(verbose)
-            cerr << GREEN << "[progress] " << setw(3) << it << "/" << tests
-                 << " tests passed ✅" << RESET << "\r";
+        cerr << GREEN << "[progress] " << setw(3) << it << "/" << tests
+             << " tests passed ✅" << RESET << "\r";
     }
-
     cerr << GREEN << "\n✅ stress_min_count: all " << tests
          << " tests passed (" << N << " max size, " << Q << " ops each)\n"
          << RESET;
     return true;
 }
+
 int main() {
 
     bool ok = true;
@@ -616,10 +601,15 @@ int main() {
     ok &= test_min_deterministic();
     ok &= test_mincount_deterministic();
     ok &= test_maxRight_minLeft_sum_predicate();
-    ok &= stress_sum();
-    ok &= stress_max_min();
-    ok &= stress_maxRight_minLeft();
-    ok &= stress_min_count();
+
+    ok &= stress_sum(300, 1000, 50000);
+    ok &= stress_sum(5000, 10, 50000);
+    ok &= stress_max_min(300, 1000, 50000);
+    ok &= stress_max_min(5000, 10, 50000);
+    ok &= stress_maxRight_minLeft(300, 1000, 50000);
+    ok &= stress_maxRight_minLeft(5000, 10, 50000);
+    ok &= stress_min_count(300, 1000, 50000);
+    ok &= stress_min_count(5000, 10, 50000);
 
     if(ok) {
         cout << "ALL TESTS PASSED ✅\n";
