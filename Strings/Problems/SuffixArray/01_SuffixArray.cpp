@@ -54,6 +54,7 @@ vector<int> suffixArray(const string &s) {
     vector<int> nc(n), np(n), cnt(n), pos(n);
 
     auto count_sort = [&]() {
+        fill(cnt.begin(), cnt.end(), 0);
         for(int i : p) {
             cnt[c[i]]++;
         }
@@ -65,13 +66,12 @@ vector<int> suffixArray(const string &s) {
             int id = c[i];
             np[pos[id]] = i;
             pos[id]++;
-            cnt[c[i]]--;
         }
         p.swap(np);
     };
 
     int k = 0;
-    while(1 << k < n) {
+    while((1 << k) < n) {
         int shift = 1 << k;
         // radix sort
         // already sorted by second pair, so we only need to sort first pair
@@ -99,6 +99,7 @@ vector<int> suffixArray(const string &s) {
         }
         c.swap(nc);
         k += 1;
+        if(c[p.back()] == n - 1) break; // early break if all unique
     }
 
     return p;

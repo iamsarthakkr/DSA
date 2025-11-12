@@ -38,9 +38,9 @@ vector<int> suffixArray(const string &s) {
     int n = (int)t.size();
 
     vector<int> p(n), c(n);
-    iota(all(p), 0);
+    iota(p.begin(), p.end(), 0);
 
-    sort(all(p), [&](int i, int j) { return t[i] < t[j]; });
+    sort(p.begin(), p.end(), [&](int i, int j) { return t[i] < t[j]; });
     c[p[0]] = 0;
     for(int i = 1; i < n; i++) {
         if(t[p[i]] == t[p[i - 1]]) {
