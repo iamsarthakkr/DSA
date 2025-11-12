@@ -51,15 +51,44 @@ vector<int> suffixArray(const string &s) {
         }
     }
 
-    vector<int> nc(n);
+    vector<int> nc(n), np(n), cnt(n), pos(n);
     int k = 0;
     while(1 << k < n) {
-        sort(all(p), [&](int i, int j) {
-            int a1 = c[i], a2 = c[(i + (1 << k)) % n];
-            int b1 = c[j], b2 = c[(j + (1 << k)) % n];
-            if(a1 != b1) return a1 < b1;
-            return a2 < b2;
-        });
+        // radix sort
+        {
+            cnt.assign(n, 0);
+            for(int i : p) {
+                int second = c[(i + (1 << k)) % n];
+                cnt[second]++;
+            }
+            pos[0] = 0;
+            for(int i = 1; i < n; i++) {
+                pos[i] = pos[i - 1] + cnt[i - 1];
+            }
+            for(int i : p) {
+                int second = c[(i + (1 << k)) % n];
+                np[pos[second]] = i;
+                pos[second]++;
+            }
+            p.swap(np);
+        }
+        {
+            cnt.assign(n, 0);
+            for(int i : p) {
+                int first = c[i];
+                cnt[first]++;
+            }
+            pos[0] = 0;
+            for(int i = 1; i < n; i++) {
+                pos[i] = pos[i - 1] + cnt[i - 1];
+            }
+            for(int i : p) {
+                int first = c[i];
+                np[pos[first]] = i;
+                pos[first]++;
+            }
+            p.swap(np);
+        }
 
         nc[p[0]] = 0;
         for(int i = 1; i < n; i++) {
@@ -67,9 +96,9 @@ vector<int> suffixArray(const string &s) {
             int a1 = c[ci], a2 = c[(ci + (1 << k)) % n];
             int b1 = c[pi], b2 = c[(pi + (1 << k)) % n];
             if(a1 == b1 && a2 == b2) {
-                nc[p[i]] = nc[p[i - 1]];
+                nc[ci] = nc[pi];
             } else {
-                nc[p[i]] = nc[p[i - 1]] + 1;
+                nc[ci] = nc[pi] + 1;
             }
         }
         c.swap(nc);
