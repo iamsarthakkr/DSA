@@ -52,53 +52,49 @@ vector<int> suffixArray(const string &s) {
     }
 
     vector<int> nc(n), np(n), cnt(n), pos(n);
+
+    auto count_sort = [&]() {
+        for(int i : p) {
+            cnt[c[i]]++;
+        }
+        pos[0] = 0;
+        for(int i = 1; i < n; i++) {
+            pos[i] = pos[i - 1] + cnt[i - 1];
+        }
+        for(int i : p) {
+            int id = c[i];
+            np[pos[id]] = i;
+            pos[id]++;
+            cnt[c[i]]--;
+        }
+        p.swap(np);
+    };
+
     int k = 0;
     while(1 << k < n) {
+        int shift = 1 << k;
         // radix sort
-        {
-            cnt.assign(n, 0);
-            for(int i : p) {
-                int second = c[(i + (1 << k)) % n];
-                cnt[second]++;
-            }
-            pos[0] = 0;
-            for(int i = 1; i < n; i++) {
-                pos[i] = pos[i - 1] + cnt[i - 1];
-            }
-            for(int i : p) {
-                int second = c[(i + (1 << k)) % n];
-                np[pos[second]] = i;
-                pos[second]++;
-            }
-            p.swap(np);
+        // already sorted by second pair, so we only need to sort first pair
+        for(int i = 0; i < n; i++) {
+            p[i] = p[i] - shift;
+            if(p[i] < 0) p[i] += n;
         }
-        {
-            cnt.assign(n, 0);
-            for(int i : p) {
-                int first = c[i];
-                cnt[first]++;
-            }
-            pos[0] = 0;
-            for(int i = 1; i < n; i++) {
-                pos[i] = pos[i - 1] + cnt[i - 1];
-            }
-            for(int i : p) {
-                int first = c[i];
-                np[pos[first]] = i;
-                pos[first]++;
-            }
-            p.swap(np);
-        }
+
+        count_sort();
 
         nc[p[0]] = 0;
         for(int i = 1; i < n; i++) {
-            int ci = p[i], pi = p[i - 1];
-            int a1 = c[ci], a2 = c[(ci + (1 << k)) % n];
-            int b1 = c[pi], b2 = c[(pi + (1 << k)) % n];
+            int ci1 = p[i], pi1 = p[i - 1];
+            int ci2 = p[i] + shift, pi2 = p[i - 1] + shift;
+            if(ci2 >= n) ci2 -= n;
+            if(pi2 >= n) pi2 -= n;
+
+            int a1 = c[ci1], a2 = c[ci2];
+            int b1 = c[pi1], b2 = c[pi2];
             if(a1 == b1 && a2 == b2) {
-                nc[ci] = nc[pi];
+                nc[ci1] = nc[pi1];
             } else {
-                nc[ci] = nc[pi] + 1;
+                nc[ci1] = nc[pi1] + 1;
             }
         }
         c.swap(nc);
