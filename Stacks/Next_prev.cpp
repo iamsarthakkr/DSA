@@ -61,11 +61,6 @@ template <typename T> bool cmin(T &a, T b) { return b < a ? a = b, 1 : 0; }
 template <typename T> bool cmax(T &a, T b) { return b > a ? a = b, 1 : 0; }
 
 template <typename T>
-struct Comparator {
-    constexpr bool operator()(const T &a, const T &b) const;
-};
-
-template <typename T>
 vector<int> next(vector<T> a, const std::function<bool(int, int)> &comp = greater<T>()) {
     int n = a.size();
     vector<int> res(n, n);
