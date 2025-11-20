@@ -52,6 +52,6 @@ class Hash {
   private:
     std::vector<Mod> m_hash;
     std::vector<Mod> m_power;
-    Mod m_base;
     int m_size;
+    Mod m_base;
 };

@@ -1,4 +1,6 @@
 #include <bits/stdc++.h>
+#include "hash.hpp"
+
 using namespace std;
 
 typedef long long ll;
@@ -28,241 +30,268 @@ typedef vector<pll> vpll;
 #define sq(x) (x) * (x)
 
 #ifdef SARTHAK_LOCAL
-#include "/Users/sarthakkumar/work/Cpp/Templates/CP_Templates/debug.cpp"
+#include "/Users/sarthakkumar/work/Cpp/Templates/Common/debug.hpp"
 #else
 #define debug(...) 69
 #endif
 
-template <typename T>
-T inverse(T a, T m) {
+namespace mint {
+template <typename T> T inverse(T a, T m) {
     T u = 0, v = 1;
+    T mod = m;
     while(a != 0) {
         T t = m / a;
         m -= t * a;
-        swap(a, m);
+        std::swap(a, m);
         u -= t * v;
-        swap(u, v);
+        std::swap(u, v);
     }
     assert(m == 1);
+    if(u < 0) u += mod;
     return u;
+}
+
+template <typename T, typename U> T power(T base, U exp) {
+    assert(exp >= 0);
+    T res = 1;
+    while(exp > 0) {
+        if(exp & 1) res *= base;
+        base *= base;
+        exp >>= 1;
+    }
+    return res;
 }
 
 template <typename VarMod>
 class ModInt {
   public:
-    using Type = typename decay<decltype(VarMod::value)>::type;
+    using Type = typename std::decay<decltype(VarMod::value)>::type;
 
-  public:
-    ModInt() : v(0) {}
+    ModInt() : val(0) {}
+    template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+    ModInt(T x) : val(normalize(x)) {}
 
-    template <typename T>
-    ModInt(T v_) {
-        v = normalize(v_);
-    }
+    static Type mod() { return VarMod::value; }
 
-    static const Type mod() { return VarMod::value; }
-
-    const Type &operator()() const { return v; }
-    template <typename U> explicit operator U() const { return static_cast<U>(v); }
+    const Type &operator()() const { return val; }
+    template <typename U> explicit operator U() const { return static_cast<U>(val); }
 
     ModInt &operator+=(const ModInt &other) {
-        v = normalize((int64_t)v + (int64_t)other.v);
+        val = normalize((int64_t)val + (int64_t)other.val);
         return *this;
     }
     ModInt &operator-=(const ModInt &other) {
-        v = normalize((int64_t)v - (int64_t)other.v);
+        val = normalize((int64_t)val - (int64_t)other.val);
         return *this;
     }
     ModInt &operator*=(const ModInt &other) {
-        v = normalize((int64_t)v * (int64_t)other.v);
+        val = normalize((int64_t)val * (int64_t)other.val);
         return *this;
     }
     ModInt &operator/=(const ModInt &other) {
-        *this *= ModInt(inverse(other.v, mod()));
+        *this *= ModInt(inverse(other.val, mod()));
         return *this;
     }
 
-    template <typename U> ModInt &operator+=(const U &other) { return *this += ModInt(other); }
-    template <typename U> ModInt &operator-=(const U &other) { return *this -= ModInt(other); }
-    template <typename U> ModInt &operator*=(const U &other) { return *this *= ModInt(other); }
-    template <typename U> ModInt &operator/=(const U &other) { return *this /= ModInt(other); }
+    // compound ops with arithmetic types
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    ModInt &operator+=(U other) { return *this += ModInt(other); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    ModInt &operator-=(U other) { return *this -= ModInt(other); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    ModInt &operator*=(U other) { return *this *= ModInt(other); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    ModInt &operator/=(U other) { return *this /= ModInt(other); }
 
     ModInt &operator++() { return *this += 1; }
     ModInt &operator--() { return *this -= 1; }
 
     ModInt operator++(int) {
-        ModInt result(*this);
+        ModInt res(*this);
         *this += 1;
-        return result;
+        return res;
     }
     ModInt operator--(int) {
-        ModInt result(*this);
+        ModInt res(*this);
         *this -= 1;
-        return result;
+        return res;
     }
 
-    ModInt operator+() const { return ModInt(v); }
-    ModInt operator-() const { return ModInt(-v); }
+    ModInt operator+() const { return ModInt(val); }
+    ModInt operator-() const { return ModInt(-val); }
 
-    friend ModInt operator+(const ModInt &a, const ModInt &b) { return ModInt(a) += b; }
-    friend ModInt operator-(const ModInt &a, const ModInt &b) { return ModInt(a) -= b; }
-    friend ModInt operator*(const ModInt &a, const ModInt &b) { return ModInt(a) *= b; }
-    friend ModInt operator/(const ModInt &a, const ModInt &b) { return ModInt(a) /= b; }
+    friend ModInt operator+(ModInt a, const ModInt &b) {
+        a += b;
+        return a;
+    }
+    friend ModInt operator-(ModInt a, const ModInt &b) {
+        a -= b;
+        return a;
+    }
+    friend ModInt operator*(ModInt a, const ModInt &b) {
+        a *= b;
+        return a;
+    }
+    friend ModInt operator/(ModInt a, const ModInt &b) {
+        a /= b;
+        return a;
+    }
 
-    template <typename U> friend ModInt operator+(const ModInt &a, const U &b) { return ModInt(a) += b; }
-    template <typename U> friend ModInt operator-(const ModInt &a, const U &b) { return ModInt(a) -= b; }
-    template <typename U> friend ModInt operator*(const ModInt &a, const U &b) { return ModInt(a) *= b; }
-    template <typename U> friend ModInt operator/(const ModInt &a, const U &b) { return ModInt(a) /= b; }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator+(ModInt a, U b) {
+        a += b;
+        return a;
+    }
 
-    template <typename U> friend ModInt operator+(const U &a, const ModInt &b) { return ModInt(a) += b; }
-    template <typename U> friend ModInt operator-(const U &a, const ModInt &b) { return ModInt(a) -= b; }
-    template <typename U> friend ModInt operator*(const U &a, const ModInt &b) { return ModInt(a) *= b; }
-    template <typename U> friend ModInt operator/(const U &a, const ModInt &b) { return ModInt(a) /= b; }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator-(ModInt a, U b) {
+        a -= b;
+        return a;
+    }
 
-    friend bool operator==(const ModInt &a, const ModInt &b) { return a.v == b.v; }
-    friend bool operator!=(const ModInt &a, const ModInt &b) { return !(a == b); }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator*(ModInt a, U b) {
+        a *= b;
+        return a;
+    }
 
-    template <typename U> friend bool operator==(const ModInt &a, const U &b) { return a.v == ModInt(b); }
-    template <typename U> friend bool operator==(const U &a, const ModInt &b) { return ModInt(a) == b; }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator/(ModInt a, U b) {
+        a /= b;
+        return a;
+    }
 
-    template <typename U> friend bool operator!=(const ModInt &a, const U &b) { return a.v != ModInt(b); }
-    template <typename U> friend bool operator!=(const U &a, const ModInt &b) { return ModInt(a) != b; }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator+(U a, ModInt b) {
+        b += a;
+        return b;
+    }
 
-    friend bool operator<(const ModInt &a, const ModInt &b) { return a.v < b.v; }
-    template <typename U> friend bool operator<(const ModInt &a, const U &b) { return a < ModInt(b); }
-    template <typename U> friend bool operator<(const U &a, const ModInt &b) { return ModInt(a) < b; }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator-(U a, ModInt b) {
+        ModInt res(a);
+        res -= b;
+        return res;
+    }
 
-    friend bool operator<=(const ModInt &a, const ModInt &b) { return a.v <= b.v; }
-    template <typename U> friend bool operator<=(const ModInt &a, const U &b) { return a <= ModInt(b); }
-    template <typename U> friend bool operator<=(const U &a, const ModInt &b) { return ModInt(a) <= b; }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator*(U a, ModInt b) {
+        b *= a;
+        return b;
+    }
 
-    friend bool operator>(const ModInt &a, const ModInt &b) { return a.v > b.v; }
-    template <typename U> friend bool operator>(const ModInt &a, const U &b) { return a > ModInt(b); }
-    template <typename U> friend bool operator>(const U &a, const ModInt &b) { return ModInt(a) > b; }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend ModInt operator/(U a, ModInt b) {
+        ModInt res(a);
+        res /= b;
+        return res;
+    }
 
-    friend bool operator>=(const ModInt &a, const ModInt &b) { return a.v >= b.v; }
-    template <typename U> friend bool operator>=(const ModInt &a, const U &b) { return a >= ModInt(b); }
-    template <typename U> friend bool operator>=(const U &a, const ModInt &b) { return ModInt(a) >= b; }
+    friend bool operator==(const ModInt &a, const ModInt &b) { return a.val == b.val; }
+    friend bool operator!=(const ModInt &a, const ModInt &b) { return a.val != b.val; }
 
-    friend std::ostream &operator<<(std::ostream &out, const ModInt &n) { return out << Type(n); }
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator==(const ModInt &a, U b) { return a == ModInt(b); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator==(U a, const ModInt &b) { return ModInt(a) == b; }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator!=(const ModInt &a, U b) { return !(a == b); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator!=(U a, const ModInt &b) { return !(a == b); }
+
+    friend bool operator<(const ModInt &a, const ModInt &b) { return a.val < b.val; }
+    friend bool operator<=(const ModInt &a, const ModInt &b) { return a.val <= b.val; }
+    friend bool operator>(const ModInt &a, const ModInt &b) { return a.val > b.val; }
+    friend bool operator>=(const ModInt &a, const ModInt &b) { return a.val >= b.val; }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator<(const ModInt &a, U b) { return a < ModInt(b); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator<(U a, const ModInt &b) { return ModInt(a) < b; }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator<=(const ModInt &a, U b) { return a <= ModInt(b); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator<=(U a, const ModInt &b) { return ModInt(a) <= b; }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator>(const ModInt &a, U b) { return a > ModInt(b); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator>(U a, const ModInt &b) { return ModInt(a) > b; }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator>=(const ModInt &a, U b) { return a >= ModInt(b); }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    friend bool operator>=(U a, const ModInt &b) { return ModInt(a) >= b; }
+
+    friend std::ostream &operator<<(std::ostream &out, const ModInt &n) {
+        return out << n.val;
+    }
+
     friend std::istream &operator>>(std::istream &in, ModInt &n) {
-        int64_t v_;
-        in >> v_;
-        n = ModInt(v_);
+        long long x;
+        in >> x;
+        n = ModInt(x);
         return in;
     }
 
   private:
     template <typename T>
     static Type normalize(T x) {
-        Type v = static_cast<Type>(x % mod());
-
-        if(v < 0) v += mod();
+        Type m = mod();
+        Type v = static_cast<Type>(x % m);
+        if(v < 0) v += m;
         return v;
     }
 
-  private:
-    Type v;
+    Type val;
 };
 
-template <typename T, typename U>
-T power(const T &base, const U &exp) {
-    assert(exp >= 0);
-    T x = base, res = 1;
-    U p = exp;
-    while(p > 0) {
-        if(p & 1) res *= x;
-        x *= x;
-        p >>= 1;
-    }
-    return res;
-}
-
-template <typename T>
-std::string to_string(const ModInt<T> &number) {
-    return to_string(number());
+template <typename VarMod>
+std::string to_string(const ModInt<VarMod> &number) {
+    return std::to_string(number());
 }
 
 /*
 using ModType = int;
-struct VarMod { static ModType value; };
+struct VarMod {
+    static ModType value;
+};
 ModType VarMod::value = 1000000007;
-ModType& md = VarMod::value;
-
+ModType &md = VarMod::value;
 using Mint = ModInt<VarMod>;
 */
 
 constexpr int md = 1000000007;
-using Mint = ModInt<std::integral_constant<decay<decltype(md)>::type, md>>;
+using Mint = ModInt<std::integral_constant<int, md>>;
 
 /*
-std::vector<Mint> fact(1, 1);
-std::vector<Mint> inv_fact(1, 1);
-
+static std::vector<Mint> fact(1, Mint(1));
+static std::vector<Mint> inv_fact(1, Mint(1));
 Mint C(int n, int k) {
-    if (k < 0 || k > n) return 0;
-
-    while((int)fact.size() < n + 1) {
-        fact.push_back(fact.back() * (int)fact.size());
-        inv_fact.push_back(1 / fact.back());
+    if(k < 0 || k > n) return Mint(0);
+    while((int)fact.size() <= n) {
+        int i = (int)fact.size();
+        fact.emplace_back(fact.back() * i);
+        inv_fact.emplace_back(Mint(1) / fact.back());
     }
     return fact[n] * inv_fact[k] * inv_fact[n - k];
 }
 */
 
-template <typename T_Iterable, typename Mod>
-class Hash {
-  public:
-    Hash() = delete;
-    Hash(const T_Iterable &s, Mod base = Mod(31)) { build(s, base); }
-    Mod operator()(int l, int r) const {
-        assert(l >= 0 && l <= r && r <= m_size);
-        Mod r_hash = m_hash[r], l_hash = m_hash[l];
-        return r_hash - l_hash * m_power[r - l];
-    }
-    Mod operator()(int i) const {
-        assert(0 <= i && i <= m_size);
-        return m_hash[i];
-    }
-    Mod operator()() const { return m_hash[m_size]; }
+} // namespace mint
 
-    int size() const { return m_size; }
-    Mod base() const { return m_base; }
-    Mod concat(Mod hA, int lenB, Mod hB) const { return hA * m_power[lenB] + hB; }
-    const std::vector<Mod> &powers() const { return m_power; }
-
-  private:
-    void build(const T_Iterable &s, Mod base) {
-        m_size = (int)s.size();
-        m_base = base;
-        m_hash.assign(m_size + 1, Mod(0));
-        m_power.resize(m_size + 1, Mod(1));
-
-        for(int i = 1; i <= m_size; i++) m_power[i] = m_base * m_power[i - 1];
-
-        for(int i = 0; i < m_size; i++) {
-            Mod val = normalize(s[i]);
-            m_hash[i + 1] = m_hash[i] * m_base + val;
-        }
-    }
-
-  private:
-    template <typename T>
-    static Mod normalize(const T &x) {
-        using U = std::decay_t<T>;
-        if constexpr(std::is_integral_v<U> && sizeof(U) == 1) {
-            return Mod(static_cast<unsigned int>(static_cast<unsigned char>(x))) + Mod(1);
-        } else {
-            return Mod(x) + Mod(1);
-        }
-    }
-
-  private:
-    std::vector<Mod> m_hash;
-    std::vector<Mod> m_power;
-    Mod m_base;
-    int m_size;
-};
+using namespace mint;
 
 template <typename Mod>
 Mod concat(Mod hA, const vector<Mod> &pow, int lenB, Mod hB) {
