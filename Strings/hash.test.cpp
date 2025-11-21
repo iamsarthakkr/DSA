@@ -292,6 +292,7 @@ Mint C(int n, int k) {
 } // namespace mint
 
 using namespace mint;
+using namespace hashing;
 
 template <typename Mod>
 Mod concat(Mod hA, const vector<Mod> &pow, int lenB, Mod hB) {
@@ -317,7 +318,7 @@ Mod naive_hash(const Iterable &s, int l, int r, Mod base) {
 
 void testEmpty() {
     string s;
-    Hash<string, Mint> H(s);
+    poly_hash<string, Mint> H(s);
     assert(H.size() == 0);
     assert(H(0) == 0);
     assert(H(0, 0) == 0);
@@ -326,7 +327,7 @@ void testEmpty() {
 
 void testCustom() {
     string s = string("\x00\x01\xff", 3); // includes 0 and 0xFF (signed char hazard)
-    Hash<string, Mint> H(s);
+    poly_hash<string, Mint> H(s);
 
     assert(H() == H((int)s.size()));
 
@@ -347,7 +348,7 @@ void testRandomStrings() {
     for(int i = 0; i < N; ++i) s[i] = char(rng() & 0xFF);
 
     Mint base = 146527ull;
-    Hash<string, Mint> H(s, base);
+    poly_hash<string, Mint> H(s, base);
 
     for(int t = 0; t < 2000; ++t) {
         int l = uniform_int_distribution<int>(0, N)(rng);
@@ -368,7 +369,7 @@ void testRandomStrings() {
 void testNumbers() {
     vector<int> a = {10, 0, -5, 1000000, 42};
     Mint base = 911382323ull;
-    Hash<vector<int>, Mint> H(a, base);
+    poly_hash<vector<int>, Mint> H(a, base);
 
     assert(H() == naive_hash(a, 0, (int)a.size(), base));
 
@@ -384,6 +385,52 @@ void testNumbers() {
     assert(combined == H());
 }
 
+bool equal_substr(const string &s, int l1, int r1, int l2, int r2) {
+    if(r1 - l1 != r2 - l2) return false;
+    for(int i = 0; i < r1 - l1; ++i)
+        if(s[l1 + i] != s[l2 + i]) return false;
+    return true;
+}
+
+void testSubstringEquality() {
+    mt19937_64 rng(987654321);
+    string s(300, 'a');
+    for(char &c : s) c = char(rng() & 0xFF);
+
+    Mint base = 131;
+    poly_hash<string, Mint> H(s, base);
+
+    for(int it = 0; it < 2000; ++it) {
+        int l1 = uniform_int_distribution<int>(0, (int)s.size())(rng);
+        int r1 = uniform_int_distribution<int>(l1, (int)s.size())(rng);
+        int l2 = uniform_int_distribution<int>(0, (int)s.size())(rng);
+        int r2 = l2 + (r1 - l1);
+        if(r2 > (int)s.size()) continue;
+
+        bool eq = equal_substr(s, l1, r1, l2, r2);
+        bool heq = (H(l1, r1) == H(l2, r2));
+        assert(eq == heq);
+    }
+}
+
+void testMultiHash() {
+    string s = "hello world";
+    multi_hash<string, Mint, 3> MH(s);
+    // For i-th hash, base is s_bases[i]
+    for(int i = 0; i < 3; ++i) {
+        Mint base = Mint(multi_hash<string, Mint, 3>::get_base(i));
+        poly_hash<string, Mint> H(s, base);
+
+        for(int l = 0; l <= (int)s.size(); ++l) {
+            for(int r = l; r <= (int)s.size(); ++r) {
+                auto mh = MH(l, r);
+                auto ph = H(l, r);
+                assert(mh[i] == ph);
+            }
+        }
+    }
+}
+
 int main() {
     ios::sync_with_stdio(0), cin.tie(NULL), cout << setprecision(12) << fixed;
 
@@ -391,6 +438,9 @@ int main() {
     testCustom();
     testRandomStrings();
     testNumbers();
+    testSubstringEquality();
+
+    testMultiHash();
 
     cout << "All tests passed" << '\n';
 
