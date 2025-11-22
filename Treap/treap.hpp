@@ -61,9 +61,7 @@ class Node {
     void setRight(NodeRef right) { m_right = right, recalc(); }
 
     void recalc() {
-        m_subtreeSize = 1;
-        if(m_left != nullptr) m_subtreeSize += m_left->m_subtreeSize;
-        if(m_right != nullptr) m_subtreeSize += m_right->m_subtreeSize;
+        m_subtreeSize = 1 + sizeOf(m_left) + sizeOf(m_right);
     }
 
   private:
